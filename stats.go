@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	daysInLastSixMonths = 180
+	daysInLastSixMonths  = 183
+	weeksInLastSixMonths = 26
 )
 
 type column []int
@@ -138,10 +139,9 @@ func calcOffset() int {
 }
 
 func printCommitsStats(commits map[int]int) {
-	// Print the commits stats
-	for i := 0; i < daysInLastSixMonths; i++ {
-		fmt.Printf("Day %d: %d commits\n", i, commits[i])
-	}
+	keys := sortMapIntoSlice(commits)
+	cols := buildCols(keys, commits)
+	printCells(cols)
 }
 
 func sortMapIntoSlice(m map[int]int) []int {
@@ -188,6 +188,32 @@ func printCols(cols map[int]column) {
 	}
 }
 
+// printCells prints the cells of the graph
+func printCells(cols map[int]column) {
+	printMonths()
+	for j := 6; j >= 0; j-- {
+		for i := weeksInLastSixMonths + 1; i >= 0; i-- {
+			if i == weeksInLastSixMonths+1 {
+				printDayCol(j)
+			}
+			if col, ok := cols[i]; ok {
+				//special case today
+				if i == 0 && j == calcOffset()-1 {
+					printCell(col[j], true)
+					continue
+				} else {
+					if len(col) > j {
+						printCell(col[j], false)
+						continue
+					}
+				}
+			}
+			printCell(0, false)
+		}
+		fmt.Printf("\n")
+	}
+}
+
 func printMonths() {
 	week := getBeginningOfDay(time.Now()).Add(-(daysInLastSixMonths * time.Hour * 24))
 	month := week.Month()
@@ -197,10 +223,10 @@ func printMonths() {
 			fmt.Printf("%s ", week.Month().String()[:3])
 			month = week.Month()
 		} else {
-			fmt.Printf("	")
+			fmt.Printf("    ")
 		}
 
-		week = week.Add(time.Hour * 24)
+		week = week.Add(time.Hour * 24 * 7)
 		if week.After(time.Now()) {
 			break
 		}
@@ -212,11 +238,11 @@ func printDayCol(day int) {
 	out := "     "
 	switch day {
 	case 1:
-		out = "Mon "
+		out = " Mon "
 	case 3:
-		out = "Wed "
+		out = " Wed "
 	case 5:
-		out = "Fri "
+		out = " Fri "
 	}
 	fmt.Printf(out)
 }

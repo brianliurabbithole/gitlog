@@ -1,0 +1,6 @@
+# Exclude executable files
+*.exe
+
+# Exclude Linux executables (files without extensions)
+*
+!*.*

@@ -70,6 +70,7 @@ func parseFileLinesToSlice(filePath string) ([]string, error) {
 
 	if err := scanner.Err(); err != nil {
 		if err != io.EOF {
+			fmt.Println("scan file failed, err:", err)
 			return nil, err
 		}
 	}
@@ -78,7 +79,7 @@ func parseFileLinesToSlice(filePath string) ([]string, error) {
 }
 
 func openFile(filePath string) (*os.File, error) {
-	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0755)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_APPEND, 0755)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return os.Create(filePath)
