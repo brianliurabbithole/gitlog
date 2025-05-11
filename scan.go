@@ -70,7 +70,6 @@ func parseFileLinesToSlice(filePath string) ([]string, error) {
 
 	if err := scanner.Err(); err != nil {
 		if err != io.EOF {
-			fmt.Println("scan file failed, err:", err)
 			return nil, err
 		}
 	}
