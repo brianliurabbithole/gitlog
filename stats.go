@@ -48,12 +48,6 @@ func processRepositories(email string) (map[int]int, error) {
 }
 
 func fillCommits(email, path string, commits map[int]int) map[int]int {
-	// Get the path to the .git folder
-	_, err := git.PlainOpen(path)
-	if err != nil {
-		logger.GetLogger().Error("Error opening repository", zap.String("path", path), zap.String("error", err.Error()))
-		return nil
-	}
 	// Get the commits for the email
 	repo, err := git.PlainOpen(path)
 	if err != nil {
