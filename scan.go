@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -13,7 +12,7 @@ import (
 
 func scan(path string) {
 	// Scan the path for files
-	fmt.Println("Scanning folder:", path)
+	logger.GetLogger().Info("Scanning path", zap.String("path", path))
 	repositories := recursiveScanFolder(path)
 	if len(repositories) == 0 {
 		logger.GetLogger().Error("No repositories found.")

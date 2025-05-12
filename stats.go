@@ -23,6 +23,7 @@ func stats(email string) {
 		logger.GetLogger().Error("Error processing repositories", zap.String("error", err.Error()))
 		return
 	}
+	logger.GetLogger().Info("Processing repositories", zap.Any("commits", comments))
 	printCommitsStats(comments)
 }
 
@@ -83,7 +84,7 @@ func fillCommits(email, path string, commits map[int]int) map[int]int {
 
 		// Get the commit date
 		date := commit.Committer.When
-		days := int(date.Sub(date).Hours() / 24)
+		days := countDaysSince(getBeginningOfDay(date))
 		if days < 0 || days > daysInLastSixMonths {
 			continue
 		}
