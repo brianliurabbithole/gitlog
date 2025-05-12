@@ -5,6 +5,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/brianliurabbithole/gitlog/logger"
+	"go.uber.org/zap"
 	"gopkg.in/src-d/go-git.v4"
 )
 
@@ -18,7 +20,7 @@ type column []int
 func stats(email string) {
 	comments, err := processRepositories(email)
 	if err != nil {
-		fmt.Println("Error processing repositories:", err)
+		logger.GetLogger().Error("Error processing repositories", zap.String("error", err.Error()))
 		return
 	}
 	printCommitsStats(comments)
@@ -49,19 +51,19 @@ func fillCommits(email, path string, commits map[int]int) map[int]int {
 	// Get the path to the .git folder
 	_, err := git.PlainOpen(path)
 	if err != nil {
-		fmt.Println("Error opening repository:", err)
+		logger.GetLogger().Error("Error opening repository", zap.String("path", path), zap.String("error", err.Error()))
 		return nil
 	}
 	// Get the commits for the email
 	repo, err := git.PlainOpen(path)
 	if err != nil {
-		fmt.Println("Error opening repository:", err)
+		logger.GetLogger().Error("Error opening repository", zap.String("path", path), zap.String("error", err.Error()))
 		return nil
 	}
 
 	ref, err := repo.Head()
 	if err != nil {
-		fmt.Println("Error getting HEAD:", err)
+		logger.GetLogger().Error("Error getting repository head", zap.String("path", path), zap.String("error", err.Error()))
 		return nil
 	}
 
@@ -70,7 +72,7 @@ func fillCommits(email, path string, commits map[int]int) map[int]int {
 		From: ref.Hash(),
 	})
 	if err != nil {
-		fmt.Println("Error getting commits:", err)
+		logger.GetLogger().Error("Error getting commits", zap.String("path", path), zap.String("error", err.Error()))
 		return nil
 	}
 	// Iterate over the commits
@@ -177,17 +179,6 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 	return cols
 }
 
-func printCols(cols map[int]column) {
-	// Print the columns
-	for k, v := range cols {
-		fmt.Printf("Week %d: ", k)
-		for _, c := range v {
-			fmt.Printf("%d ", c)
-		}
-		fmt.Println()
-	}
-}
-
 // printCells prints the cells of the graph
 func printCells(cols map[int]column) {
 	printMonths()
@@ -244,7 +235,7 @@ func printDayCol(day int) {
 	case 5:
 		out = " Fri "
 	}
-	fmt.Printf(out)
+	fmt.Print(out)
 }
 
 // printCell given a cell value prints it with a different format

@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
+
+	"github.com/brianliurabbithole/gitlog/logger"
+	"go.uber.org/zap"
 )
 
 func scan(path string) {
@@ -14,20 +16,19 @@ func scan(path string) {
 	fmt.Println("Scanning folder:", path)
 	repositories := recursiveScanFolder(path)
 	if len(repositories) == 0 {
-		fmt.Println("No repositories found in the folder.")
+		logger.GetLogger().Error("No repositories found.")
 		return
 	}
 
 	// Get the path to the .dot file
 	dotFilePath := getDotFilePath()
 	if dotFilePath == "" {
-		fmt.Println("No .dot file found.")
+		logger.GetLogger().Error("Error getting .dot file path.")
 		return
 	}
 
 	// Add new elements to the .dot file
 	addNewSliceElementsToFile(dotFilePath, repositories)
-	fmt.Println("Repositories added to .dot file.")
 }
 
 func recursiveScanFolder(path string) []string {
@@ -37,7 +38,7 @@ func recursiveScanFolder(path string) []string {
 func getDotFilePath() string {
 	user, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("Error getting user home directory:", err)
+		logger.GetLogger().Error("Error getting user home directory", zap.String("error", err.Error()))
 		return ".gogitlocalstats"
 	}
 
@@ -47,12 +48,11 @@ func getDotFilePath() string {
 func addNewSliceElementsToFile(filePath string, slice []string) {
 	existingRepos, err := parseFileLinesToSlice(filePath)
 	if err != nil {
-		log.Println("Error parsing file:", err)
+		logger.GetLogger().Error("Error parsing file lines to slice", zap.String("error", err.Error()))
 		return
 	}
 	newRepos := joinSlice(slice, existingRepos)
 	dumpStringSliceToFile(newRepos, filePath)
-	fmt.Println("Repositories added to file:", filePath)
 }
 
 func parseFileLinesToSlice(filePath string) ([]string, error) {
@@ -117,14 +117,14 @@ func scanGitFolders(folders []string, path string) []string {
 
 	f, err := os.Open(folder)
 	if err != nil {
-		fmt.Println("Error opening folder:", err)
+		logger.GetLogger().Error("Error opening folder", zap.String("folder", folder), zap.String("error", err.Error()))
 		return folders
 	}
 	defer f.Close()
 
 	files, err := f.Readdir(-1)
 	if err != nil {
-		fmt.Println("Error reading folder:", err)
+		logger.GetLogger().Error("Error reading folder", zap.String("folder", folder), zap.String("error", err.Error()))
 		return folders
 	}
 
