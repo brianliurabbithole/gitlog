@@ -13,6 +13,7 @@ import (
 const (
 	daysInLastSixMonths  = 183
 	weeksInLastSixMonths = 26
+	outOfRange           = 9999
 )
 
 type column []int
@@ -23,7 +24,6 @@ func stats(email string) {
 		logger.GetLogger().Error("Error processing repositories", zap.String("error", err.Error()))
 		return
 	}
-	logger.GetLogger().Info("Processing repositories", zap.Any("commits", comments))
 	printCommitsStats(comments)
 }
 
@@ -84,7 +84,7 @@ func fillCommits(email, path string, commits map[int]int) map[int]int {
 
 		// Get the commit date
 		date := commit.Committer.When
-		days := countDaysSince(getBeginningOfDay(date))
+		days := countDaysSinceDate(getBeginningOfDay(date))
 		if days < 0 || days > daysInLastSixMonths {
 			continue
 		}
@@ -100,13 +100,17 @@ func getBeginningOfDay(date time.Time) time.Time {
 	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
-func countDaysSince(date time.Time) int {
-	// Get the current date
-	now := time.Now()
-	// Get the beginning of the day
-	beginningOfDay := getBeginningOfDay(now)
-	// Get the difference in days
-	days := int(beginningOfDay.Sub(date).Hours() / 24)
+// countDaysSinceDate counts how many days passed since the passed `date`
+func countDaysSinceDate(date time.Time) int {
+	days := 0
+	now := getBeginningOfDay(time.Now())
+	for date.Before(now) {
+		date = date.Add(time.Hour * 24)
+		days++
+		if days > daysInLastSixMonths {
+			return outOfRange
+		}
+	}
 	return days
 }
 
@@ -116,22 +120,23 @@ func calcOffset() int {
 
 	switch weekday {
 	case time.Sunday:
-		offset = 7
+		offset = 1
 	case time.Monday:
-		offset = 6
+		offset = 2
 	case time.Tuesday:
-		offset = 5
+		offset = 3
 	case time.Wednesday:
 		offset = 4
 	case time.Thursday:
-		offset = 3
+		offset = 5
 	case time.Friday:
-		offset = 2
+		offset = 6
 	case time.Saturday:
-		offset = 1
+		offset = 7
 	default:
 		offset = 0
 	}
+
 	return offset
 }
 
@@ -251,7 +256,7 @@ func printCell(val int, today bool) {
 	}
 
 	if val == 0 {
-		fmt.Printf(escape + "  - " + "\033[0m")
+		fmt.Print(escape + "  - " + "\033[0m")
 		return
 	}
 
