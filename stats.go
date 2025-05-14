@@ -148,7 +148,7 @@ func printCommitsStats(commits map[int]int) {
 
 func sortMapIntoSlice(m map[int]int) []int {
 	// Sort the map into a slice
-	keys := make([]int, len(m))
+	keys := make([]int, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
 	}
@@ -162,10 +162,12 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 	// Build the columns
 	cols := make(map[int]column)
 
-	col := make(column, 0)
+	offset := calcOffset() - 1
+	col := make(column, offset)
 	for _, k := range keys {
-		week := k / 7
-		day := k % 7
+		weekDay := k + offset
+		week := weekDay / 7
+		day := weekDay % 7
 		if day == 0 {
 			col = make(column, 0)
 		}
@@ -182,7 +184,7 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 // printCells prints the cells of the graph
 func printCells(cols map[int]column) {
 	printMonths()
-	for j := 6; j >= 0; j-- {
+	for j := 0; j < 7; j++ {
 		for i := weeksInLastSixMonths + 1; i >= 0; i-- {
 			if i == weeksInLastSixMonths+1 {
 				printDayCol(j)
@@ -228,11 +230,11 @@ func printMonths() {
 func printDayCol(day int) {
 	out := "     "
 	switch day {
-	case 1:
+	case 5:
 		out = " Mon "
 	case 3:
 		out = " Wed "
-	case 5:
+	case 1:
 		out = " Fri "
 	}
 	fmt.Print(out)
