@@ -120,19 +120,45 @@ func calcOffset() int {
 
 	switch weekday {
 	case time.Sunday:
-		offset = 1
+		offset = 7
 	case time.Monday:
-		offset = 2
+		offset = 6
 	case time.Tuesday:
-		offset = 3
+		offset = 5
 	case time.Wednesday:
 		offset = 4
 	case time.Thursday:
-		offset = 5
+		offset = 3
 	case time.Friday:
-		offset = 6
+		offset = 2
 	case time.Saturday:
-		offset = 7
+		offset = 1
+	default:
+		offset = 0
+	}
+
+	return offset
+}
+
+func calcDayOffset() int {
+	var offset int
+	weekday := time.Now().Weekday()
+
+	switch weekday {
+	case time.Sunday:
+		offset = 6
+	case time.Monday:
+		offset = 0
+	case time.Tuesday:
+		offset = 1
+	case time.Wednesday:
+		offset = 2
+	case time.Thursday:
+		offset = 3
+	case time.Friday:
+		offset = 4
+	case time.Saturday:
+		offset = 5
 	default:
 		offset = 0
 	}
@@ -158,31 +184,28 @@ func sortMapIntoSlice(m map[int]int) []int {
 	return keys
 }
 
-func buildCols(keys []int, commits map[int]int) map[int]column {
+func buildCols(keys []int, commits map[int]int) map[int]map[int]int {
 	// Build the columns
-	cols := make(map[int]column)
+	cols := make(map[int]map[int]int, weeksInLastSixMonths+1)
 
-	offset := calcOffset() - 1
-	col := make(column, offset)
+	offset := calcDayOffset()
 	for _, k := range keys {
 		weekDay := k + offset
 		week := weekDay / 7
 		day := weekDay % 7
-		if day == 0 {
-			col = make(column, 0)
+		d, ok := cols[week]
+		if !ok {
+			d = make(map[int]int, 7)
 		}
-
-		col = append(col, commits[k])
-		if day == 6 {
-			cols[week] = col
-		}
+		d[day] = commits[k]
+		cols[week] = d
 	}
 
 	return cols
 }
 
 // printCells prints the cells of the graph
-func printCells(cols map[int]column) {
+func printCells(cols map[int]map[int]int) {
 	printMonths()
 	for j := 0; j < 7; j++ {
 		for i := weeksInLastSixMonths + 1; i >= 0; i-- {
