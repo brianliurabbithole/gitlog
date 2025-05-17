@@ -24,6 +24,8 @@ func stats(email string) {
 		logger.GetLogger().Error("Error processing repositories", zap.String("error", err.Error()))
 		return
 	}
+	fmt.Println("*****", comments)
+	fmt.Println("Commits in the last 6 months")
 	printCommitsStats(comments)
 }
 
@@ -146,19 +148,19 @@ func calcDayOffset() int {
 
 	switch weekday {
 	case time.Sunday:
-		offset = 6
+		offset = 7
 	case time.Monday:
-		offset = 0
-	case time.Tuesday:
 		offset = 1
-	case time.Wednesday:
+	case time.Tuesday:
 		offset = 2
-	case time.Thursday:
+	case time.Wednesday:
 		offset = 3
-	case time.Friday:
+	case time.Thursday:
 		offset = 4
-	case time.Saturday:
+	case time.Friday:
 		offset = 5
+	case time.Saturday:
+		offset = 6
 	default:
 		offset = 0
 	}
@@ -169,6 +171,7 @@ func calcDayOffset() int {
 func printCommitsStats(commits map[int]int) {
 	keys := sortMapIntoSlice(commits)
 	cols := buildCols(keys, commits)
+	fmt.Println("Commits in the last 6 months", cols)
 	printCells(cols)
 }
 
@@ -188,9 +191,8 @@ func buildCols(keys []int, commits map[int]int) map[int]map[int]int {
 	// Build the columns
 	cols := make(map[int]map[int]int, weeksInLastSixMonths+1)
 
-	offset := calcDayOffset()
 	for _, k := range keys {
-		weekDay := k + offset
+		weekDay := k
 		week := weekDay / 7
 		day := weekDay % 7
 		d, ok := cols[week]
